@@ -1,0 +1,62 @@
+# Investigación Teórica: Estructuras de Datos y Fundamentos de Web APIs
+
+## 1. Estructuras de Datos Eficientes
+
+### Árboles Binarios de Búsqueda (ABB)
+Un Árbol Binario de Búsqueda es una estructura de datos jerárquica no lineal. Su **regla de ordenamiento** fundamental establece que para cualquier nodo dado (*nodo raíz* de un subárbol):
+* Los elementos almacenados en su **hijo izquierdo** deben tener un valor estrictamente menor que el valor del nodo padre.
+* Los elementos almacenados en su **hijo derecho** deben tener un valor estrictamente mayor (o igual, dependiendo de la implementación de duplicados) que el valor del nodo padre.
+
+#### Principal Desventaja: Degeneración
+Cuando los datos se insertan en un orden secuencial (ya sea estrictamente ascendente o descendente, por ejemplo: 1, 2, 3, 4, 5), el ABB pierde su estructura ramificada y **se degenera en una lista vinculada**. Debido a que cada nuevo nodo se inserta sistemáticamente como el hijo derecho (o izquierdo) del anterior, la altura del árbol pasa de ser óptimamente $O(\log n)$ a ser $O(n)$. Esto anula la eficiencia de la estructura, provocando que las operaciones de búsqueda, inserción y eliminación requieran un recorrido lineal de peor caso ($O(n)$).
+
+---
+
+### Árboles AVL
+Un árbol AVL es un **árbol binario de búsqueda auto-balanceado**. Esto significa que la estructura posee mecanismos internos automáticos (rotaciones) que se ejecutan durante las operaciones de inserción y eliminación para asegurar que la altura del árbol permanezca controlada y proporcional al logaritmo del número de elementos.
+
+#### Factor de Balanceo
+El factor de balanceo ($FB$) es la métrica utilizada para determinar si el árbol está en equilibrio. Se calcula para cada nodo individual mediante la fórmula:
+
+$$\text{Factor} = \text{Altura}_{\text{Izquierda}} - \text{Altura}_{\text{Derecha}}$$
+
+* Un nodo se considera **balanceado** si su $FB \in \{-1, 0, 1\}$.
+* Si el $FB$ de cualquier nodo llega a ser $\ge 2$ o $\le -2$, el árbol se detecta como desbalanceado y dispara una operación de rotación (simple o doble) para reestructurarse.
+
+#### Complejidad Temporal Fija en $O(\log n)$
+La complejidad para las operaciones de búsqueda, inserción y eliminación se mantiene estrictamente en $O(\log n)$ debido a la garantía de su altura. Al asegurar que la diferencia de altura entre los subárboles de cualquier nodo nunca sea mayor a 1, la altura máxima del árbol está acotada asintóticamente a un factor de $1.44 \log_2(n)$. Dado que el tiempo de ejecución de estas operaciones depende directamente de la profundidad máxima del árbol, el peor de los casos queda confinado a una escala logarítmica, previniendo la degeneración lineal.
+
+---
+
+## 2. Fundamentos de Web APIs
+
+### APIs y el Modelo Cliente-Servidor
+Una **API (Application Programming Interface)** es un conjunto de definiciones y protocolos que permite que dos aplicaciones de software se comuniquen e intercambien datos entre sí de forma estandarizada.
+
+En el **modelo Cliente-Servidor**, las responsabilidades están segregadas:
+* **Cliente:** El programa (ej. navegador web, app móvil) que solicita un recurso o servicio.
+* **Servidor:** El sistema remoto que procesa la solicitud, gestiona la lógica de negocio/datos y retorna un resultado.
+
+#### Flujo de una Petición (Request) y Respuesta (Response) en HTTP
+1. **Establecimiento de Conexión:** El cliente inicia una conexión TCP con el servidor utilizando una dirección IP y un puerto específicos.
+2. **Envío de la Petición (Request):** El cliente empaqueta y envía un mensaje formateado bajo el protocolo HTTP que incluye:
+   * *Línea de solicitud:* Método/Verbo HTTP (GET, POST, etc.), la URI (ruta del recurso) y la versión de HTTP.
+   * *Cabeceras (Headers):* Metadatos esenciales (tipo de contenido aceptado, autenticación, host, etc.).
+   * *Cuerpo (Body):* Opcional (común en POST/PUT), contiene los datos que se envían al servidor en formatos como JSON o XML.
+3. **Procesamiento:** El servidor intercepta la petición, valida las cabeceras, ejecuta la lógica correspondiente (ej. consultar una base de datos) y genera un resultado.
+4. **Envío de la Respuesta (Response):** El servidor retorna un mensaje HTTP estructurado de vuelta al cliente:
+   * *Línea de estado:* Versión de HTTP y un Código de Estado numérico (ej. `200 OK`, `404 Not Found`).
+   * *Cabeceras (Headers):* Metadatos de la respuesta (tipo de contenido devuelto, tamaño, servidor de origen).
+   * *Cuerpo (Body):* Los datos del recurso solicitado (frecuentemente estructurados en JSON).
+5. **Cierre/Persistencia:** Dependiendo de las cabeceras (`Keep-Alive`), la conexión se cierra o se mantiene abierta para futuras peticiones.
+
+---
+
+### Verbos HTTP: Diferencias, Uso e Idempotencia
+
+La **idempotencia** es una propiedad de las operaciones HTTP que garantiza que realizar la misma petición idéntica varias veces consecutivas producirá el mismo efecto en el estado del servidor que realizarla una sola vez.
+
+| Verbo HTTP | Definición Conceptual | Uso Correcto | Idempotente | Justificación |
+| :--- | :--- | :--- | :--- | :--- |
+| **GET** | Recuperación y lectura de recursos existentes. | Solicitar datos específicos al servidor sin alterarlos (operación de solo lectura). | **Sí** | Consultar un recurso 1 o 100 veces no modifica el estado de los datos en el servidor; el resultado neto en el sistema es idéntico. |
+| **POST** | Creación y envío de nuevos recursos subordinados. | Enviar entidades en el cuerpo de la petición para que el servidor las registre como un nuevo elemento (ej. registrar un usuario). | **No** | Si se ejecuta la misma petición POST 3 veces consecutivas, el servidor creará 3 registros distintos en la base de datos, alterando el estado global con cada llamada. |
